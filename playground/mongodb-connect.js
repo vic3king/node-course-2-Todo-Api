@@ -2,7 +2,7 @@
 // const mongoClient = require('mongodb').MongoClient
 
 //using es6 destructuring to pull out a property of an object and save it to a variable
-const {MongoClient, ObjectID} = require('mongodb')
+const { MongoClient, ObjectID } = require('mongodb')
 
 // //new objectid 
 // const obj = new ObjectID()
@@ -11,7 +11,7 @@ const {MongoClient, ObjectID} = require('mongodb')
 //call mongoClient and load in url and callback
 MongoClient.connect('mongodb://localhost:27017/TodoApp', (err, db) => {
   //handle error case
-  if(err) {
+  if (err) {
     console.log('Unable to connect to MongoDb server')
   } else {
     console.log('Connected to MongoDb server')
@@ -23,12 +23,12 @@ MongoClient.connect('mongodb://localhost:27017/TodoApp', (err, db) => {
     completed: false
   }, (err, result) => {
     //error handling
-       if(err) {
-       console.log('Unable to insert todo', err)
-       } else {
-         //saving to db using pretty printing and .ops property
-        console.log(JSON.stringify(result.ops, undefined, 2))
-       }
+    if (err) {
+      console.log('Unable to insert todo', err)
+    } else {
+      //saving to db using pretty printing and .ops property
+      console.log(JSON.stringify(result.ops, undefined, 2))
+    }
   })
 
   //challenge add User collection to the db
