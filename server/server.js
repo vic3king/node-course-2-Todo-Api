@@ -29,7 +29,16 @@ app.post('/todos', (req, res) => {
   console.log(req.body.text)
 })
 
-
+//route to get all todos and show to user(GET)
+app.get('/todos', (req, res) => {
+  //find all todos
+  Todo.find().then((todos) => {
+    //sending back all response using an array instead of an array
+    res.send({todos})
+  }).catch((err) => {
+    res.status(400).send(err)
+  });
+})
 //express app route
 app.listen(3000, () => {
   console.log('Started on port 3000')
