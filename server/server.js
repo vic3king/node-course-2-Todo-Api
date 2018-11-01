@@ -12,6 +12,8 @@ const { ObjectID } = require('mongodb')
 
 //express app
 const app = express()
+//setup for heroku 1
+const port = process.env.PORT || 3000
 
 //config middleware(accessing stuff from the library)
 app.use(bodyParser.json())
@@ -64,8 +66,8 @@ app.get('/todos/:id', (req, res) => {
 })
 
 //express app route
-app.listen(3000, () => {
-  console.log('Started on port 3000')
+app.listen(port, () => {
+  console.log(`Started on port ${port}`)
 })
 
 module.exports = { app }
