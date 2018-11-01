@@ -7,6 +7,9 @@ const { mongoose } = require('./db/mongoose')
 const { User } = require('./models/user')
 const { Todo } = require('./models/todo')
 
+//load in object id from todo
+const { ObjectID } = require('mongodb')
+
 //express app
 const app = express()
 
@@ -34,11 +37,32 @@ app.get('/todos', (req, res) => {
   //find all todos
   Todo.find().then((todos) => {
     //sending back all response using an array instead of an array
-    res.send({todos})
+    res.send({ todos })
   }).catch((err) => {
     res.status(400).send(err)
   });
 })
+
+//challeng fetching a particular todo using its id or any other parameter get route
+app.get('/todos/:id', (req, res) => {
+  //the id should live on req.params.id
+  const id = req.params.id
+  //test that the id is valid
+  if (!ObjectID.isValid(id)) {
+    return res.status(404).send()
+  }
+
+  //query the database to find the todo matching thatID
+  Todo.findById(id).then((todo) => {
+    if (!todo) {
+      return res.status(404).send()
+    }
+    res.send({todo})
+  }).catch((err) => {
+    res.status(400).send()
+  });
+})
+
 //express app route
 app.listen(3000, () => {
   console.log('Started on port 3000')
