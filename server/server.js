@@ -1,3 +1,6 @@
+// load in lodash libraries to use the methods available on it
+const _ = require('lodash')
+
 //load in libraries
 const express = require('express')
 const bodyParser = require('body-parser')
@@ -6,6 +9,9 @@ const bodyParser = require('body-parser')
 const { mongoose } = require('./db/mongoose')
 const { User } = require('./models/user')
 const { Todo } = require('./models/todo')
+
+//deprecated warning fix
+mongoose.set('useFindAndModify', false)
 
 //load in object id from todo
 const { ObjectID } = require('mongodb')
@@ -81,6 +87,41 @@ app.delete('/todos/:id', (req, res) => {
   }).catch((err) => {
     res.status(400).send()
   });
+})
+
+//patch route updates a todo items
+app.patch('/todos/:id', (req, res) => {
+  //the id should live on req.params.id
+  const id = req.params.id
+
+  //var body,updates are stored on req body
+  const body = _.pick(req.body, ['text', 'completed'])
+
+  //test that the id is valid
+  if (!ObjectID.isValid(id)) {
+    return res.status(404).send()
+  }
+
+  //check is lodash body.completed is a boolean and is truthy
+  if (_.isBoolean(body.completed) && body.completed) {
+    //updates completedAt timestamp once completed value is changed to true
+    body.completedAt = new Date().getTime()
+  } else {
+    body.completed = false
+    body.completedAt = null
+  }
+
+  //querry db to update file which will be found by its id
+  Todo.findByIdAndUpdate(id, { $set: body }, { new: true }).then((todo) => {
+    if (!todo) {
+      return res.status(404).send()
+    }
+
+    res.send(todo)
+  }).catch((err) => {
+    res.status(400).send()
+  });
+
 })
 //express app route
 app.listen(port, () => {
