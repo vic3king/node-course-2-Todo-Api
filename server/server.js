@@ -126,6 +126,32 @@ app.patch('/todos/:id', (req, res) => {
   });
 
 })
+
+
+
+//route to add new user for authentication(Post)
+app.post('/users', (req, res) => {
+  //create an instance of a mongose model to set props
+  const body = _.pick(req.body, ['email', 'password'])
+
+  //new instance of a user model passing in the user object as an argument
+  const user = new User(body)
+
+  //two types of methods, model(User) and instance(users)
+
+  //save to db and send post content to user
+  user.save().then(() => {
+    return user.generateAuthToken()
+  }).then((token) => {
+    res.header('x-auth', token).send(user)
+  }).catch((err) => {
+    res.status(400).send(err)
+  });
+  console.log(req.body.email)
+})
+
+//illustrate how to make a private route
+// app.get('/users/me')
 //express app route
 app.listen(port, () => {
   console.log(`Started on port ${port}`)
