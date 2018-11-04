@@ -22,7 +22,7 @@ const todos = [{
 
 //test lifecycle method lets us run a code before every test case, in our case make sure the db is empty
 beforeEach((done) => {
-  Todo.remove({}).then(() => {
+  Todo.deleteMany({}).then(() => {
     return Todo.insertMany(todos);
   }).then(() => done());
 });

@@ -1,3 +1,6 @@
+//require config file to set ports
+require('./config/config')
+
 // load in lodash libraries to use the methods available on it
 const _ = require('lodash')
 
@@ -19,7 +22,7 @@ const { ObjectID } = require('mongodb')
 //express app
 const app = express()
 //setup for heroku 1
-const port = process.env.PORT || 3000
+const port = process.env.PORT
 
 //config middleware(accessing stuff from the library)
 app.use(bodyParser.json())
