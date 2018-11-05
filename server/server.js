@@ -8,10 +8,11 @@ const _ = require('lodash')
 const express = require('express')
 const bodyParser = require('body-parser')
 
-//require mongoose file, User moderl, Todo model, using destructuring technique
+//require mongoose file, User moderl, Todo model, using destructuring technique/ authenticate file
 const { mongoose } = require('./db/mongoose')
 const { User } = require('./models/user')
 const { Todo } = require('./models/todo')
+const { authenticate } = require('./middleware/authenticate')
 
 //deprecated warning fix
 mongoose.set('useFindAndModify', false)
@@ -127,8 +128,6 @@ app.patch('/todos/:id', (req, res) => {
 
 })
 
-
-
 //route to add new user for authentication(Post)
 app.post('/users', (req, res) => {
   //create an instance of a mongose model to set props
@@ -143,6 +142,7 @@ app.post('/users', (req, res) => {
   user.save().then(() => {
     return user.generateAuthToken()
   }).then((token) => {
+    //send back the http header(custom) with a token
     res.header('x-auth', token).send(user)
   }).catch((err) => {
     res.status(400).send(err)
@@ -150,8 +150,12 @@ app.post('/users', (req, res) => {
   console.log(req.body.email)
 })
 
-//illustrate how to make a private route
-// app.get('/users/me')
+
+//make a private route by calling authenticate middleware
+app.get('/users/me', authenticate, (req, res) => {
+  res.send(req.user)
+})
+
 //express app route
 app.listen(port, () => {
   console.log(`Started on port ${port}`)
