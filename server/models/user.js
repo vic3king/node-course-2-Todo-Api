@@ -10,6 +10,9 @@ const _ = require('lodash')
 //require jwt
 const jwt = require('jsonwebtoken')
 
+//require bcrypt js to enable salting an d hashing
+const bcrypt = require('bcryptjs')
+
 const UserSchema = new mongoose.Schema({
   email: {
     //validation for email type and if field will be required
@@ -86,7 +89,23 @@ UserSchema.statics.findByToken = function (token) {
     'tokens.access': 'auth'
   })
 }
+//mongoose iddleware lets us hash our passwords before saving to database 
+UserSchema.pre('save', function (next) {
+  const user = this
 
+  //hash passwords before saving
+  if (user.isModified('password')) {
+    bcrypt.genSalt(10, (err, salt) => {
+      bcrypt.hash(user.password, salt, (err, hash) => {
+        user.password = hash
+        next()
+      })
+    })
+  } else {
+    next()
+  }
+
+})
 //create a model for a user as a challenge
 const User = mongoose.model('User', UserSchema)
 

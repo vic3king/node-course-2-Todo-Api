@@ -4,16 +4,35 @@ const { SHA256 } = require('crypto-js')
 //use jwt
 const jwt = require('jsonwebtoken')
 
-let data = {
-  id: 10
-}
+//load in bcrypt
+const bcrypt = require('bcryptjs')
+
+let password = '123abc'
+
+//hash using bcrypt, salt it first, then hash 
+// bcrypt.genSalt(10, (err, salt) => {
+//   bcrypt.hash(password, salt, (err, hash) => {
+//     console.log(hash)
+//   })
+// })
+
+let hashedPassword = '$2a$10$gN1b.0ZycXl8sgl2beeT3.wDeKvTIUOk4N4cuu1nE10rJXaDTkXGu'
+
+//compare the hashed value with the plain text
+bcrypt.compare(password, hashedPassword, (err, res) => {
+console.log(res)
+})
+
+// let data = {
+//   id: 10
+// }
 //takes the object(user id) and signs it(hashing & salting)
-let token = jwt.sign(data, '123abc')
-console.log(token)
+// let token = jwt.sign(data, '123abc')
+// console.log(token)
 
 //takes the object(toke and secret) and makes sure it was not manipulated it(salting)
-const decoded = jwt.verify(token, '123abc')
-console.log('decoded', decoded)
+// const decoded = jwt.verify(token, '123abc')
+// console.log('decoded', decoded)
 
 
 //to hash a variable we create the variable and pass it into a d sha function
