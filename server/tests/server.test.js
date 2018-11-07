@@ -8,24 +8,13 @@ const { ObjectID } = require('mongodb');
 //load in requires files for testing from server and models
 const { app } = require('./../server');
 const { Todo } = require('./../models/todo');
+const { User } = require('./../models/user')
+const { todos, populateTodos, users, populateUsers } = require('./seed/seed')
 
-//add todos for testing 
-const todos = [{
-  _id: new ObjectID(),
-  text: 'First test todo'
-}, {
-  _id: new ObjectID(),
-  text: 'Second test todo',
-  completed: true,
-  completedAt: 333
-}];
+//test lifecycle method lets us run a code before every test case, in our case make sure the db is empty, populateTodos is called from seed file
 
-//test lifecycle method lets us run a code before every test case, in our case make sure the db is empty
-beforeEach((done) => {
-  Todo.deleteMany({}).then(() => {
-    return Todo.insertMany(todos);
-  }).then(() => done());
-});
+beforeEach(populateTodos)
+beforeEach(populateUsers)
 
 //describe to group all test cases
 describe('POST /todos', () => {
@@ -155,7 +144,6 @@ describe('DELETE /todos/:id', () => {
       .expect(404)
       .end(done);
   })
-
 })
 
 //test for PATCH route
@@ -165,7 +153,7 @@ describe('PATCH /todos/:id', () => {
     //grab id of first todo
     const hexId = todos[0]._id.toHexString()
     const text = 'Test todo text'
-    
+
     //request appto be tested
     request(app)
       .patch(`/todos/${hexId}`)
@@ -199,6 +187,84 @@ describe('PATCH /todos/:id', () => {
         expect(res.body.completed).toBe(false)
         expect(res.body.completedAt).toBeFalsy()
       })
+      .end(done)
+  })
+})
+
+//test cases for  users
+describe('GET /users/me', () => {
+  //for get users
+  it('should return user if authenticated', (done) => {
+    request(app)
+      .get('/users/me')
+      .set('x-auth', users[0].tokens[0].token)
+      .expect(200)
+      .expect((res) => {
+        expect(res.body._id).toBe(users[0]._id.toHexString())
+        expect(res.body.email).toBe(users[0].email)
+      })
+      .end(done)
+  })
+
+
+  it('should return a 401 if not authenticated', (done) => {
+    request(app)
+      .get('/users/me')
+      .expect(401)
+      .expect((res) => {
+        expect(res.body).toEqual({})
+      })
+      .end(done)
+  })
+})
+
+//post users test cases
+describe('POST /users', () => {
+  it('should create a user', (done) => {
+    const email = 'example@example.com'
+    const password = '123abc'
+    request(app)
+      .post('/users')
+      .send({ email, password })
+      .expect(200)
+      .expect((res) => {
+        expect(res.headers['x-auth']).toExist()
+        expect(res.body._id).toExist()
+        expect(res.body.email).toBe(email)
+      })
+      //instead of done pass a custom function to query db
+      .end((err) => {
+        if (err) {
+          return done(err)
+        }
+
+        User.findOne({ email }).then((user) => {
+          expect(user).toExist()
+          expect(user.password).toNotBe(password)
+        })
+      })
+  })
+
+  it('should return validation errors if request is invalid', (done) => {
+    request(app)
+      .post('/users')
+      .send({
+        email: 'and',
+        password: '123'
+      })
+      .expect(400)
+      .end(done)
+  })
+
+
+  it('should not create a user is email is in use', (done) => {
+    request(app)
+      .post('/users')
+      .send({
+        email: users[0].email,
+        password: 'userOnepass'
+      })
+      .expect(400)
       .end(done)
   })
 })
