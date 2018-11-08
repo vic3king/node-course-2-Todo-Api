@@ -163,10 +163,20 @@ app.post('/users/login', (req, res) => {
   User.findByCredentials(body.email, body.password).then((user) => {
     return user.generateAuthToken().then((token) => {
       res.header('x-auth', token).send(user)
-    }) 
+    })
   }).catch((err) => {
     res.status(400).send()
   });
+})
+
+//logout user route
+app.delete('/users/me/token', authenticate, (req, res) => {
+  //instance method to remove a token and log a user out
+  req.user.removeToken(req.token).then(() => {
+    res.status(200).send()
+  }, () => {
+    res.status(400).send()
+  })
 })
 //express app route
 app.listen(port, () => {
