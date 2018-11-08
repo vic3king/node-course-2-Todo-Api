@@ -89,6 +89,27 @@ UserSchema.statics.findByToken = function (token) {
     'tokens.access': 'auth'
   })
 }
+
+//login should find by credetials
+UserSchema.statics.findByCredentials = function (email, password) {
+  const User = this
+  //return the promise from find  user by email 
+  return User.findOne({ email }).then((user) => {
+    if (!user) {
+      return Promise.reject()
+    }
+    //main login function compare the plain password from a user with the hashed password in the database, we are returning this promise because bcrypt doesnt return a promise it ruturns a callback
+    return new Promise((resolve, reject) => {
+      bcrypt.compare(password, user.password, (err, res) => {
+        if (res) {
+          resolve(user)
+        } else {
+          reject()
+        }
+      })
+    })
+  })
+}
 //mongoose iddleware lets us hash our passwords before saving to database 
 UserSchema.pre('save', function (next) {
   const user = this
