@@ -18,17 +18,23 @@ const users = [{
 }, {
   _id: userTwoId,
   email: 'john@example.com',
-  password: 'userTwoPass'
+  password: 'userTwoPass',
+  tokens: [{
+    acess: 'auth',
+    token: jwt.sign({ _id: userTwoId, access: 'auth' }, 'abc123').toString()
+  }]
 }]
 //add todos for testing 
 const todos = [{
   _id: new ObjectID(),
-  text: 'First test todo'
+  text: 'First test todo',
+  _creator: userOneId
 }, {
   _id: new ObjectID(),
   text: 'Second test todo',
   completed: true,
-  completedAt: 333
+  completedAt: 333,
+  _creator: userTwoId
 }];
 
 
@@ -36,7 +42,7 @@ const populateTudos = (done) => {
   Todo.deleteMany({}).then(() => {
     return Todo.insertMany(todos);
   }).then(() => done()).catch((err) => {
-    
+
   });
 }
 
@@ -48,7 +54,7 @@ const populateUsers = (done) => {
     //takes an array of promises
     return Promise.all([userOne, userTwo])
   }).then(() => done()).catch((err) => {
-    
+
   });
 }
 module.exports = { todos, populateTudos, users, populateUsers }

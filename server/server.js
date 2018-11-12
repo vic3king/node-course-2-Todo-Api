@@ -29,10 +29,11 @@ const port = process.env.PORT
 app.use(bodyParser.json())
 
 //route to add new todo(Post)
-app.post('/todos', (req, res) => {
+app.post('/todos', authenticate, (req, res) => {
   //create an instance of a mongose model to set props
   const todo = new Todo({
-    text: req.body.text
+    text: req.body.text,
+    _creator: req.user._id
   })
 
   //save to db and send post content to user
@@ -45,9 +46,11 @@ app.post('/todos', (req, res) => {
 })
 
 //route to get all todos and show to user(GET)
-app.get('/todos', (req, res) => {
+app.get('/todos', authenticate, (req, res) => {
   //find all todos
-  Todo.find().then((todos) => {
+  Todo.find({
+    _creator: req.user._id
+  }).then((todos) => {
     //sending back all response using an array instead of an array
     res.send({ todos })
   }).catch((err) => {
@@ -56,7 +59,7 @@ app.get('/todos', (req, res) => {
 })
 
 //challeng fetching a particular todo using its id or any other parameter get route
-app.get('/todos/:id', (req, res) => {
+app.get('/todos/:id', authenticate, (req, res) => {
   //the id should live on req.params.id
   const id = req.params.id
   //test that the id is valid
@@ -65,7 +68,10 @@ app.get('/todos/:id', (req, res) => {
   }
 
   //query the database to find the todo matching thatID
-  Todo.findById(id).then((todo) => {
+  Todo.findOne({
+    _id: id,
+    _creator: req.user._id
+  }).then((todo) => {
     if (!todo) {
       return res.status(404).send()
     }
@@ -76,14 +82,17 @@ app.get('/todos/:id', (req, res) => {
 })
 
 //create a delete route
-app.delete('/todos/:id', (req, res) => {
+app.delete('/todos/:id', authenticate, (req, res) => {
   //validate the id before deleting
   const id = req.params.id
   if (!ObjectID.isValid(id)) {
     return res.status(404).send()
   }
   //find and delete using id
-  Todo.findByIdAndDelete(id).then((todo) => {
+  Todo.findOneAndDelete({
+    _id: id,
+    _creator: req.user._id
+  }).then((todo) => {
     if (!todo) {
       return res.status(404).send()
     }
@@ -94,7 +103,7 @@ app.delete('/todos/:id', (req, res) => {
 })
 
 //patch route updates a todo items
-app.patch('/todos/:id', (req, res) => {
+app.patch('/todos/:id', authenticate, (req, res) => {
   //the id should live on req.params.id
   const id = req.params.id
 
@@ -116,7 +125,10 @@ app.patch('/todos/:id', (req, res) => {
   }
 
   //querry db to update file which will be found by its id
-  Todo.findByIdAndUpdate(id, { $set: body }, { new: true }).then((todo) => {
+  Todo.findOneAndUpdate({
+    _id: id,
+    _creator: req.user._id
+  }, { $set: body }, { new: true }).then((todo) => {
     if (!todo) {
       return res.status(404).send()
     }
